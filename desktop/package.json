@@ -1,0 +1,17 @@
+{
+  "name": "trace-desktop-shell",
+  "productName": "Trace",
+  "version": "0.2.0",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "package:linux": "electron-builder --linux --x64",
+    "package:windows": "electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3"
+  },
+  "description": "Local desktop screen and work-session tracker"
+}

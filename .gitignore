@@ -1,0 +1,43 @@
+# Dependencies and generated output
+node_modules/
+dist/
+release/
+build/
+coverage/
+*.tsbuildinfo
+
+# Logs, caches, and temporary files
+*.log
+.cache/
+.vite/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Editor, OS, and local agent metadata
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+.agents/
+.codex/
+
+# Local reference material
+CODEX-HANDOFF.md
+preview/

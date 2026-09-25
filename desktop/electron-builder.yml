@@ -1,0 +1,27 @@
+appId: local.trace.desktop
+productName: Trace
+directories:
+  output: ../release
+files:
+  - main.cjs
+  - preload.cjs
+  - package.json
+extraResources:
+  - from: ../dist
+    to: dist
+asar: true
+linux:
+  target:
+    - AppImage
+    - tar.gz
+  category: Utility
+  executableName: trace
+win:
+  target:
+    - nsis
+  signAndEditExecutable: false
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true

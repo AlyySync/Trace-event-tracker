@@ -1,0 +1,115 @@
+[
+  {
+    "name": "Save random capture preferences and reject invalid ranges",
+    "sanity": true,
+    "viewport": "desktop",
+    "covers": [
+      "random screenshot interval presets",
+      "custom interval validation",
+      "motion styles",
+      "screen change sensitivity",
+      "preferences persistence",
+      "navigation"
+    ],
+    "description": "Valid preferences survive reload while invalid capture ranges are blocked.",
+    "steps": [
+      "Open Preferences. Set minimum screenshot interval to 90 and maximum to 30 seconds. Click Save preferences and verify a validation message keeps the dialog open.",
+      "Set minimum to 30 and maximum to 90, select Focused motion and High sensitivity, then save.",
+      "Refresh, reopen Preferences, and verify the range, motion and sensitivity persisted. Switch to Ambient and save.",
+      "Navigate between Overview, Timeline and Captures. With no sessions created, verify empty states and zero totals."
+    ],
+    "expected": "Invalid ranges are rejected. Valid random-capture and motion preferences persist with no fabricated sessions, activity or screenshots."
+  },
+  {
+    "name": "Decline screen access without recording time or screenshots",
+    "viewport": "desktop",
+    "covers": [
+      "screen selection",
+      "screen permission denial",
+      "unsupported capture feedback",
+      "no fabricated screenshots",
+      "permission retry",
+      "capture disabled without live source"
+    ],
+    "description": "A denied or unavailable screen feed never starts recording and presents useful feedback.",
+    "steps": [
+      "Name the session Permission check and click Start tracking.",
+      "Cancel the browser screen-sharing picker if available. If capture is unsupported, observe the displayed error.",
+      "Verify the tracker remains disconnected, tracked time does not grow, and Capture now is disabled.",
+      "Open Captures and verify no screenshot was created. Return to Overview and try starting again to confirm retry is available."
+    ],
+    "expected": "The app gives visible permission or capability feedback, records no time or image without a live source, and allows another attempt."
+  },
+  {
+    "name": "Track a real shared screen, pause, recover and save a session",
+    "viewport": "desktop",
+    "covers": [
+      "session naming",
+      "live source preview",
+      "screen-change sampling",
+      "device signal scope",
+      "pause/resume time accounting",
+      "refresh recovery",
+      "finish session",
+      "timeline and day totals",
+      "session deletion confirmation",
+      "Tempo-style HH:MM:SS stopwatch",
+      "stopwatch start pause resume finish controls",
+      "stopwatch and sidebar synchronization"
+    ],
+    "description": "A permitted screen session produces real activity and excludes paused time, with durable history and guarded deletion.",
+    "steps": [
+      "Name the session Design review. In the Session stopwatch card, click Start session and share a screen or window if the environment permits.",
+      "If the browser cannot provide a real shared source, verify visible capability feedback and no session or capture, and report the screen-dependent steps as unavailable without simulating success.",
+      "With a real source connected, verify the preview shows it, tracked time grows, and screen changes reflect changing source content. Browser device activity must be unavailable rather than inferred from pixels. Verify the circular stopwatch displays hours, minutes, and seconds and agrees with the sidebar elapsed time.",
+      "Use Pause session in the stopwatch card. Verify its elapsed display stays still and the screen disconnects. Refresh and verify the same paused time remains. Use Resume session in the card to share a source again. Verify counting continues from the saved elapsed time, then use Finish in the card and verify the stopwatch resets to 00:00:00.",
+      "Open Timeline, verify Design review and its events. Refresh to verify persistence. Delete this session, cancel once, then confirm deletion and refresh."
+    ],
+    "expected": "Where capture is supported, elapsed time excludes pauses, reconnect is explicit, activity and history are durable, and deletion occurs only after confirmation. Unsupported native device signals remain unavailable."
+  },
+  {
+    "name": "Take random and manual screenshots, review and delete them",
+    "viewport": "desktop",
+    "covers": [
+      "random automatic screenshots",
+      "manual screenshots",
+      "live preview hide and expand",
+      "pause cancels capture",
+      "gallery filters",
+      "PNG download",
+      "screenshot persistence",
+      "screenshot delete confirmation",
+      "timeline capture links"
+    ],
+    "description": "Real selected-source captures are timestamped, saved locally, browsable, downloadable, and removable only after confirmation.",
+    "steps": [
+      "In Preferences set a 15\u201325 second random range. Name a session Capture review and start tracking a real screen or window.",
+      "If capture cannot be granted, verify the error and empty gallery, and report remaining screen-dependent steps as unavailable without injecting dummy captures.",
+      "With a source connected, expand then close the preview and hide it. Use Capture now once and allow an automatic screenshot to arrive within the configured range.",
+      "Pause tracking. Verify no further screenshot appears for 25 seconds. Open Captures and check All, Random and Manual filters.",
+      "Open a screenshot, download PNG, close it and refresh. Check it remains. Inspect its linked timeline event. Delete the screenshot, cancel once, then confirm and refresh."
+    ],
+    "expected": "Real manual and randomly scheduled captures retain source, time and image context. Hiding only the preview does not stop capture; pausing does. Downloads and confirmed deletion work, and cancelled deletion preserves the image."
+  },
+  {
+    "name": "Use preferences and capture navigation on a narrow viewport",
+    "viewport": "mobile",
+    "covers": [
+      "responsive navigation",
+      "responsive preferences",
+      "reduced motion",
+      "minimum equals maximum guardrail",
+      "empty gallery filter reset",
+      "responsive stopwatch layout",
+      "stopwatch reduced-motion behavior"
+    ],
+    "description": "The interface remains usable on a narrow viewport and preserves reduced motion without permitting an invalid fixed interval.",
+    "steps": [
+      "Open Preferences. Select Reduced motion. Set both interval fields to 30 and attempt to save. Verify the range validation.",
+      "Set the maximum to 90 and save. Refresh and verify Reduced remains selected.",
+      "Open Captures, switch to Random, then Manual. If the gallery is empty, use Show all captures and Go to overview.",
+      "Verify controls fit the viewport and dialogs scroll without horizontal overflow. On Overview, verify the full circular stopwatch and its controls fit without clipping. With Reduced selected, the decorative stopwatch animations are disabled."
+    ],
+    "expected": "Preferences and navigation are usable, reduced motion persists, equal interval bounds are rejected, and empty gallery actions work."
+  }
+]
