@@ -37,7 +37,8 @@ import SessionTimer from './SessionTimer';
 import { durationLabel, elapsed, trackedToday } from "./tracking";
 import type { ActivityBin, Motion, WorkSession } from "./tracking";
 import type { Capture } from "./storage";
-import type { DesktopSource } from "./desktop";
+import { desktop, isDesktop } from "./desktop";
+import type { DesktopSource, StorageInfo } from "./desktop";
 
 type Page = "overview" | "timeline" | "captures";
 const time = (at: number) =>
@@ -206,10 +207,12 @@ function SignalChart({
 
 export default function TraceApp() {
   const tracker = useTracker();
-  const { state, now, captures, stream, device } = tracker;
+  const { state, now, captures, stream, connected, previewFrame, device } = tracker;
   const [page, setPage] = useState<Page>("overview");
   const [label, setLabel] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [storageInfo, setStorageInfo] = useState<StorageInfo | null>(null);
+  const [storageError, setStorageError] = useState('');
   const [draft, setDraft] = useState(state.settings);
   const [settingsError, setSettingsError] = useState("");
   const [sources, setSources] = useState<DesktopSource[] | null>(null);
@@ -227,8 +230,8 @@ export default function TraceApp() {
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const current = state.current;
-  const running = !!stream && current?.runningSince != null;
-  const native = !!window.traceDesktop;
+  const running = connected && current?.runningSince != null;
+  const native = isDesktop;
   const allSessions = [...(current ? [current] : []), ...state.history];
   const inspected =
     allSessions.find((item) => item.id === selectedSession) ??
@@ -282,29 +285,37 @@ export default function TraceApp() {
     setDraft(state.settings);
     setSettingsError("");
     setSettingsOpen(true);
+    if (native) {
+      setStorageError('');
+      void desktop.storageInfo().then(setStorageInfo).catch(failure => setStorageError(String(failure)));
+    }
   };
   const startTracking = async () => {
     if (native) {
-      if (running) tracker.pause("Changing screen source");
+      if (running) await tracker.pause("Changing screen source");
       setSourceLoading(true);
       tracker.setError("");
       try {
-        const available = await window.traceDesktop!.listSources();
+        const available = await desktop.listSources();
         if (!available.length) throw new Error("No sources");
         setSources(available);
-      } catch {
-        tracker.setError(
-          "No screens were available. Allow screen-recording permission for Trace and try again.",
-        );
+      } catch (failure) {
+        tracker.setError(`Could not list screens: ${String(failure)}. Check screen-recording permission and try again.`);
       } finally {
         setSourceLoading(false);
       }
     } else {
-      if (running) tracker.pause("Changing screen source");
+      if (running) await tracker.pause("Changing screen source");
       await tracker.start(label);
     }
   };
-  const download = (capture: Capture) => {
+  const download = async (capture: Capture) => {
+    if (native) {
+      try {
+        if (await desktop.exportCapture(capture.id)) tracker.setNotice('PNG saved to the location you selected.');
+      } catch (failure) { tracker.setError(`Could not export screenshot: ${String(failure)}`); }
+      return;
+    }
     const url = urls.get(capture.id);
     if (!url) return;
     const link = document.createElement("a");
@@ -681,7 +692,7 @@ export default function TraceApp() {
                   <div className="panel-actions">
                     <button
                       className="icon-button"
-                      disabled={!stream}
+                      disabled={!connected}
                       aria-label={
                         state.settings.hidePreview
                           ? "Show live preview"
@@ -705,7 +716,7 @@ export default function TraceApp() {
                     </button>
                     <button
                       className="icon-button"
-                      disabled={!stream || state.settings.hidePreview}
+                      disabled={!connected || state.settings.hidePreview}
                       aria-label="Expand screen preview"
                       onClick={() => setLargePreview(true)}
                     >
@@ -727,8 +738,8 @@ export default function TraceApp() {
                     );
                   }}
                 >
-                  {stream && !state.settings.hidePreview ? (
-                    <LiveVideo stream={stream} />
+                  {connected && !state.settings.hidePreview ? (
+                    native ? (previewFrame ? <img className="native-screen-frame" src={previewFrame} alt="Selected screen, refreshed every few seconds" /> : <div className="preview-loading">Waiting for the next frame…</div>) : stream ? <LiveVideo stream={stream} /> : null
                   ) : (
                     <div className="screen-empty">
                       <div className="scan-grid" />
@@ -741,7 +752,7 @@ export default function TraceApp() {
                         <i />
                         <i />
                         <span>
-                          {stream ? (
+                          {connected ? (
                             <EyeOff size={29} strokeWidth={1.3} />
                           ) : (
                             <ScanLine size={32} strokeWidth={1.3} />
@@ -749,14 +760,14 @@ export default function TraceApp() {
                         </span>
                       </div>
                       <h3>
-                        {stream
+                        {connected
                           ? "Preview hidden"
                           : current
                             ? "Ready when you are."
                             : "Bring your work into focus."}
                       </h3>
                       <p>
-                        {stream
+                        {connected
                           ? "Tracking and random screenshots are still running."
                           : "Start tracking and choose a screen or window."}
                       </p>
@@ -1477,11 +1488,25 @@ export default function TraceApp() {
             <option value="8">Low</option>
           </select>
         </div>
+        <div className="settings-section storage-section">
+          <div className="settings-label">
+            <ShieldCheck size={18} />
+            <div><h3>Data on this device</h3><p>{native ? 'Screenshots, timestamps and sessions are stored in SQLite.' : 'This preview stores data in this browser.'}</p></div>
+          </div>
+          {native ? <>
+            <span className="storage-caption">DATABASE LOCATION</span>
+            <code className="storage-path">{storageInfo?.databasePath || storageError || 'Reading database location…'}</code>
+            <p className="storage-details">PNG images: <code>captures.png</code><br />Capture time: <code>captured_at</code> · elapsed time: <code>elapsed_ms</code><br />Times are saved in milliseconds. Capture timestamps use UTC.</p>
+          </> : <>
+            <code className="storage-path">IndexedDB → tempo-captures → captures</code>
+            <p className="storage-details">Each record includes the PNG, capture time and session elapsed time. The Tauri desktop app uses a separate local SQLite database.</p>
+          </>}
+        </div>
         <div className="settings-scope">
           <LockKeyhole size={16} />
           <p>
-            Captures happen only during active tracking. Pause, finish, sleep,
-            or screen lock stop capture in the desktop app.
+            Captures happen only during active tracking. Pause or finish stops capture.
+            Detected screen locks and interrupted capture feeds pause tracking too.
           </p>
         </div>
         <div className="dialog-actions">
@@ -1519,7 +1544,7 @@ export default function TraceApp() {
                 void tracker.start(label, source);
               }}
             >
-              <img src={source.thumbnail} alt={`Preview of ${source.name}`} />
+              {source.thumbnail ? <img src={source.thumbnail} alt={`Preview of ${source.name}`} /> : <span className="source-placeholder"><Monitor size={32} /><span>{source.type === 'screen' ? 'Screen' : 'Window'}</span></span>}
               <span>
                 <Monitor size={16} />
                 <strong>{source.name}</strong>
@@ -1551,7 +1576,7 @@ export default function TraceApp() {
                 </strong>
                 <span>
                   {date(preview.createdAt)} · {time(preview.createdAt)} ·{" "}
-                  {preview.width} × {preview.height}
+                  {preview.width} × {preview.height} · {durationLabel(preview.elapsedMs, true)} into session
                 </span>
               </div>
               <button
@@ -1573,14 +1598,14 @@ export default function TraceApp() {
         )}
       </Dialog>
       <Dialog
-        open={largePreview && !!stream}
+        open={largePreview && connected}
         close={() => setLargePreview(false)}
         title="Live screen preview"
         wide
       >
-        {stream && (
+        {connected && (
           <div className="expanded-preview">
-            <LiveVideo stream={stream} />
+            {native && previewFrame ? <img className="native-screen-frame" src={previewFrame} alt="Selected screen preview" /> : stream ? <LiveVideo stream={stream} /> : null}
           </div>
         )}
       </Dialog>

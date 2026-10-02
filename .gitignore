@@ -41,3 +41,13 @@ Desktop.ini
 # Local reference material
 CODEX-HANDOFF.md
 preview/
+
+# Rust/Tauri build output and generated schemas
+target/
+src-tauri/gen/
+
+# Local migration backups and runtime database files
+.local-backups/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm

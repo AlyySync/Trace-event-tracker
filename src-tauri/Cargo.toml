@@ -1,0 +1,23 @@
+[package]
+name = "trace-desktop"
+version = "0.3.0"
+edition = "2021"
+description = "Trace screen activity tracker"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-single-instance = "2"
+tauri-plugin-dialog = "2"
+trace-core = { path = "core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+image = { version = "0.25", default-features = false, features = ["png"] }
+xcap = "=0.9.8"
+user-idle = "0.6"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_StationsAndDesktops"] }

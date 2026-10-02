@@ -9,11 +9,12 @@
       "motion styles",
       "screen change sensitivity",
       "preferences persistence",
-      "navigation"
+      "navigation",
+      "local database location and storage explanation"
     ],
     "description": "Valid preferences survive reload while invalid capture ranges are blocked.",
     "steps": [
-      "Open Preferences. Set minimum screenshot interval to 90 and maximum to 30 seconds. Click Save preferences and verify a validation message keeps the dialog open.",
+      "Open Preferences. Verify Data on this device identifies IndexedDB \u2192 tempo-captures \u2192 captures for this browser preview and explains the separate Tauri SQLite storage. Set minimum screenshot interval to 90 and maximum to 30 seconds. Click Save preferences and verify a validation message keeps the dialog open.",
       "Set minimum to 30 and maximum to 90, select Focused motion and High sensitivity, then save.",
       "Refresh, reopen Preferences, and verify the range, motion and sensitivity persisted. Switch to Ambient and save.",
       "Navigate between Overview, Timeline and Captures. With no sessions created, verify empty states and zero totals."
@@ -87,7 +88,7 @@
       "If capture cannot be granted, verify the error and empty gallery, and report remaining screen-dependent steps as unavailable without injecting dummy captures.",
       "With a source connected, expand then close the preview and hide it. Use Capture now once and allow an automatic screenshot to arrive within the configured range.",
       "Pause tracking. Verify no further screenshot appears for 25 seconds. Open Captures and check All, Random and Manual filters.",
-      "Open a screenshot, download PNG, close it and refresh. Check it remains. Inspect its linked timeline event. Delete the screenshot, cancel once, then confirm and refresh."
+      "Open a screenshot and verify its capture time and elapsed time into the session. Download PNG, close it and refresh. Check it remains. Inspect its linked timeline event. Delete the screenshot, cancel once, then confirm and refresh."
     ],
     "expected": "Real manual and randomly scheduled captures retain source, time and image context. Hiding only the preview does not stop capture; pausing does. Downloads and confirmed deletion work, and cancelled deletion preserves the image."
   },

@@ -3097,3 +3097,12 @@ footer i {
     transition: none !important;
   }
 }
+
+.native-screen-frame { width: 100%; height: 100%; object-fit: contain; display: block; background: #090c0d; }
+.preview-loading { display: grid; place-items: center; width: 100%; height: 100%; color: var(--muted); }
+.source-placeholder { display: flex; align-items: center; justify-content: center; gap: 12px; height: 122px; color: #87c4ad; background: linear-gradient(145deg, #172a26, #101718); border-bottom: 1px solid #26332f; }
+.source-placeholder span { color: #93a5a0; font-size: 12px; }
+.storage-caption { display: block; color: #8caaa0; font-size: 9px; letter-spacing: .13em; margin: 16px 0 7px; }
+.storage-path { display: block; padding: 12px 14px; background: #0d1313; border: 1px solid #273331; border-radius: 9px; color: #bedccc; font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; user-select: text; }
+.storage-details { margin: 10px 0 0; color: #82958d; font-size: 11px; line-height: 1.8; }
+.storage-details code { color: #b0c5bc; }

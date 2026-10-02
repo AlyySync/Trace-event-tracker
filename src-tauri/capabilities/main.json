@@ -1,0 +1,25 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "Only the bundled main window can use Trace's narrow native commands.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "allow-native-status",
+    "allow-list-sources",
+    "allow-start-tracking",
+    "allow-pause-tracking",
+    "allow-finish-tracking",
+    "allow-capture-now",
+    "allow-set-preferences",
+    "allow-rename-session",
+    "allow-record-interactions",
+    "allow-list-captures",
+    "allow-read-capture",
+    "allow-delete-capture",
+    "allow-delete-session",
+    "allow-storage-info",
+    "allow-export-capture"
+  ]
+}
