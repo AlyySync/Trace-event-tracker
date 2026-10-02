@@ -2,7 +2,13 @@
 
 A desktop screen tracker built with **Tauri 2, Rust, React and TypeScript**. The graphite/mint interface, animations and Tempo-style circular stopwatch are preserved. Electron has been removed.
 
-## Run on your PC
+## Install Trace
+
+Download the Windows `.exe` installer, Ubuntu 24.04 `.deb` package, or Linux `.AppImage` from [GitHub Releases](https://github.com/AlyySync/Trace-event-tracker/releases/latest). These are for 64-bit Intel/AMD PCs. You do not need Node.js or Rust to use an installer.
+
+Follow the [Windows and Ubuntu installation guide](INSTALL.md) for setup, first use, upgrades and removal. Ubuntu screen capture requires an **Ubuntu on Xorg** session; Wayland capture is not supported in this version.
+
+## Build from source
 
 Install Node.js 22+, Rust stable, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your OS. Then, from this folder:
 
@@ -19,7 +25,7 @@ npm run desktop:build
 
 The installer output goes under `src-tauri/target/release/bundle/` on the machine where you build. A release uses the bundled interface and does not need a web server. This archive is source code, not a signed installer.
 
-The GitHub Actions workflow in `.github/workflows/desktop.yml` checks TypeScript, browser tracking tests, Rust core tests, the frontend build and native compilation on Linux and Windows for pushes and pull requests to `main`. Run it manually or push a `v*` tag to also package Linux AppImage/DEB and Windows NSIS installers, downloadable from the workflow artifacts.
+The GitHub Actions workflow in `.github/workflows/desktop.yml` checks TypeScript, browser tracking tests, Rust core tests, the frontend build and native compilation on Linux and Windows for pushes and pull requests to `main`. Run it manually or push a `v*` tag to also package Linux AppImage/DEB and Windows NSIS installers, downloadable from the workflow artifacts together with `INSTALL.md` and SHA-256 checksums. Published installer downloads are on the Releases page.
 
 ### Ubuntu / Debian prerequisites
 
