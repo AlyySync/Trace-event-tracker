@@ -68,7 +68,7 @@
           "libegl1"
         ],
         "files": {
-          "/usr/share/doc/trace-desktop/INSTALL.md": "../INSTALL.md"
+          "/usr/share/doc/trace/INSTALL.md": "../INSTALL.md"
         }
       }
     }

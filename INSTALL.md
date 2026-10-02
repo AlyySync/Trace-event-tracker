@@ -43,7 +43,7 @@ sudo apt update
 sudo apt install ./Trace-0.3.0-ubuntu-24.04-amd64.deb
 ```
 
-APT installs the required runtime libraries. Open **Trace** from the applications menu. You can also run `trace-desktop` from a terminal to see startup errors. The guide is installed at `/usr/share/doc/trace-desktop/INSTALL.md`.
+APT installs the required runtime libraries. Open **Trace** from the applications menu. You can also run `trace-desktop` from a terminal to see startup errors. The guide is installed at `/usr/share/doc/trace/INSTALL.md`.
 
 ### Run the AppImage
 
@@ -79,7 +79,7 @@ Quit Trace before updating, then install the newer Windows installer or DEB over
 On Windows, remove Trace through **Settings → Apps → Installed apps**. On Ubuntu, remove the DEB with:
 
 ```sh
-sudo apt remove trace-desktop
+sudo apt remove trace
 ```
 
 For AppImage, delete the downloaded file after quitting Trace. Uninstalling is separate from deleting your stored sessions and screenshots; back up anything you need before removing app data.

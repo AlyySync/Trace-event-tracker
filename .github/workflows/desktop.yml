@@ -54,6 +54,28 @@ jobs:
       - name: Prepare installers and installation guide
         if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
         run: node scripts/collect-installers.mjs ${{ matrix.target }}
+      - name: Verify Ubuntu package installation
+        if: runner.os == 'Linux' && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v'))
+        run: |
+          sudo apt-get install -y ./release/installers/*.deb
+          dpkg-query -W trace
+          test -x /usr/bin/trace-desktop
+          test -f /usr/share/doc/trace/INSTALL.md
+          python3 - <<'PY'
+          import subprocess
+          libraries = subprocess.check_output(['ldd', '/usr/bin/trace-desktop'], text=True)
+          print(libraries)
+          assert 'not found' not in libraries, 'Missing runtime library'
+          PY
+      - name: Verify Windows installer
+        if: runner.os == 'Windows' && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v'))
+        shell: pwsh
+        run: |
+          $installer = (Get-ChildItem release/installers/*-setup.exe).FullName
+          $installDir = Join-Path $env:RUNNER_TEMP 'trace-installer-test'
+          $process = Start-Process -FilePath $installer -ArgumentList '/S', "/D=$installDir" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Installer exited with $($process.ExitCode)" }
+          if (!(Test-Path (Join-Path $installDir 'trace-desktop.exe'))) { throw 'Installed application is missing' }
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
         with:
