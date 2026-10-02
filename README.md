@@ -36,7 +36,7 @@ sudo apt update
 sudo apt install build-essential pkg-config libwebkit2gtk-4.1-dev \
   libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev \
   libclang-dev libxcb1-dev libxrandr-dev libdbus-1-dev \
-  libpipewire-0.3-dev libwayland-dev libegl-dev libxss-dev
+  libpipewire-0.3-dev libwayland-dev libegl-dev libgbm-dev libxss-dev
 ```
 
 **This capture adapter currently requires an X11 session on Linux.** It reports a clear error on Wayland. A persistent Wayland portal/PipeWire capture session is not implemented. On Windows, install the C++ Build Tools and WebView2 required by Tauri. On macOS, install Xcode Command Line Tools and grant Screen Recording access to the app. Native capture and permission behavior must be validated on your target PC.
