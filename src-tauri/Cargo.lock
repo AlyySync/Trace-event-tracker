@@ -4699,7 +4699,7 @@ checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
 
 [[package]]
 name = "trace-core"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "rand 0.9.5",
  "rusqlite",
@@ -4710,7 +4710,7 @@ dependencies = [
 
 [[package]]
 name = "trace-desktop"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "base64 0.22.1",
  "image",
@@ -5790,8 +5790,6 @@ dependencies = [
 [[package]]
 name = "xcap"
 version = "0.9.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da270fd7c8581d43d731cb690bcc791fc0a7b3bc96e131a4b6552d0379640a9e"
 dependencies = [
  "dispatch2",
  "image",

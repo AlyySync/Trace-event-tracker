@@ -6,7 +6,7 @@ A desktop screen tracker built with **Tauri 2, Rust, React and TypeScript**. The
 
 Download the Windows `.exe` installer, Ubuntu 24.04 `.deb` package, or Linux `.AppImage` from [GitHub Releases](https://github.com/AlyySync/Trace-event-tracker/releases/latest). These are for 64-bit Intel/AMD PCs. You do not need Node.js or Rust to use an installer.
 
-Follow the [Windows and Ubuntu installation guide](INSTALL.md) for setup, first use, upgrades and removal. Ubuntu screen capture requires an **Ubuntu on Xorg** session; Wayland capture is not supported in this version.
+Follow the [Windows and Ubuntu installation guide](INSTALL.md) for setup, first use, upgrades and removal. On Ubuntu Wayland, Trace detects connected displays and requests them through one system sharing dialog; Xorg and Windows use Trace's screen and window picker.
 
 ## Build from source
 
@@ -25,7 +25,7 @@ npm run desktop:build
 
 The installer output goes under `src-tauri/target/release/bundle/` on the machine where you build. A release uses the bundled interface and does not need a web server. This archive is source code, not a signed installer.
 
-The GitHub Actions workflow in `.github/workflows/desktop.yml` checks TypeScript, browser tracking tests, Rust core tests, the frontend build and native compilation on Linux and Windows for pushes and pull requests to `main`. Run it manually or push a `v*` tag to also package Linux AppImage/DEB and Windows NSIS installers, downloadable from the workflow artifacts together with `INSTALL.md` and SHA-256 checksums. Published installer downloads are on the Releases page.
+The GitHub Actions workflow in `.github/workflows/desktop.yml` checks TypeScript, browser tracking tests, Rust core tests, the frontend build and native compilation on Linux and Windows for pushes and pull requests to `main`. Run it manually to create workflow artifacts, or push a `v*` tag to package Linux AppImage/DEB and Windows NSIS installers and publish them on the Releases page with `INSTALL.md` and SHA-256 checksums.
 
 ### Ubuntu / Debian prerequisites
 
@@ -39,7 +39,7 @@ sudo apt install build-essential pkg-config libwebkit2gtk-4.1-dev \
   libpipewire-0.3-dev libwayland-dev libegl-dev libgbm-dev libxss-dev
 ```
 
-**This capture adapter currently requires an X11 session on Linux.** It reports a clear error on Wayland. A persistent Wayland portal/PipeWire capture session is not implemented. On Windows, install the C++ Build Tools and WebView2 required by Tauri. On macOS, install Xcode Command Line Tools and grant Screen Recording access to the app. Native capture and permission behavior must be validated on your target PC.
+On Ubuntu Wayland, Trace uses XDG ScreenCast portal and PipeWire sessions. The system dialog must grant each selected screen; Trace reuses those sessions until they end. On Xorg and Windows, Trace captures the selected source directly. On Windows, install the C++ Build Tools required by Tauri; the packaged installer includes the WebView2 offline installer. On macOS, install Xcode Command Line Tools and grant Screen Recording access to the app. Native capture and permission behavior must be validated on your target PC.
 
 ## Where is the database?
 

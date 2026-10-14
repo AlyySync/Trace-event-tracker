@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-finish-tracking"
+description = "Enables the finish_tracking command without any pre-configured scope."
+commands.allow = ["finish_tracking"]
+
+[[permission]]
+identifier = "deny-finish-tracking"
+description = "Denies the finish_tracking command without any pre-configured scope."
+commands.deny = ["finish_tracking"]

@@ -36,6 +36,8 @@ pub struct Runtime {
     pub workspace: Workspace,
     pub allowed: HashMap<String, Source>,
     pub source: Option<Source>,
+    pub capture: Option<capture::CaptureHandle>,
+    pub portal_cache: Option<Arc<capture::PortalCapture>>,
     pub generation: u64,
     pub next_capture: Option<Instant>,
     pub previous: Option<Vec<u8>>,
@@ -56,6 +58,12 @@ impl Runtime {
     }
     pub fn pause(&mut self, reason: &str, at: i64) -> Result<()> {
         self.generation += 1;
+        if let Some(capture) = self.capture.take() {
+            capture.stop();
+        }
+        if reason == "Changing screen source" {
+            self.portal_cache = None;
+        }
         self.source = None;
         self.next_capture = None;
         self.previous = None;
@@ -99,6 +107,8 @@ impl Engine {
                 workspace,
                 allowed: HashMap::new(),
                 source: None,
+                capture: None,
+                portal_cache: None,
                 generation: 0,
                 next_capture: None,
                 previous: None,
@@ -140,7 +150,7 @@ impl Engine {
     }
     pub fn start(&self, source_id: &str, label: &str) -> Result<Status> {
         let _gate = self.capture_gate.lock().map_err(|e| e.to_string())?;
-        let (source, generation) = {
+        let (source, generation, previous_portal) = {
             let r = self.runtime.lock().map_err(|e| e.to_string())?;
             if r.source.is_some() {
                 return Err("Pause before selecting another source".into());
@@ -151,16 +161,30 @@ impl Engine {
                     .cloned()
                     .ok_or("Choose an available source first")?,
                 r.generation,
+                r.portal_cache.clone(),
             )
         };
         if device::state() == "locked" {
             return Err("Unlock your device before tracking".into());
         }
-        let first = capture::frame(&source)?;
+        let capture = capture::CaptureHandle::connect(source.clone(), previous_portal)?;
+        let first = match capture.frame() {
+            Ok(frame) => frame,
+            Err(error) => {
+                capture.stop();
+                if capture.portal().is_some() {
+                    if let Ok(mut r) = self.runtime.lock() {
+                        r.portal_cache = None;
+                    }
+                }
+                return Err(error);
+            }
+        };
         let thumbnail = STANDARD.encode(capture::png(&first, 960)?);
         let now = now_ms();
         let mut r = self.runtime.lock().map_err(|e| e.to_string())?;
         if r.generation != generation {
+            capture.stop();
             return Err("Connection was cancelled".into());
         }
         if let Some(current) = &mut r.workspace.current {
@@ -173,6 +197,8 @@ impl Engine {
         r.last_signal_at = 0;
         r.previous = Some(capture::pixels(&first));
         r.source = Some(source);
+        r.portal_cache = capture.portal();
+        r.capture = Some(capture);
         r.change = None;
         r.preview = if r.workspace.settings.hide_preview {
             None
@@ -198,6 +224,7 @@ impl Engine {
     pub fn finish(&self) -> Result<Status> {
         let mut r = self.runtime.lock().map_err(|e| e.to_string())?;
         r.pause("Screen disconnected", now_ms())?;
+        r.portal_cache = None;
         r.workspace.finish(now_ms());
         r.notice = "Session saved to your timeline.".into();
         r.persist()?;
@@ -233,7 +260,7 @@ impl Engine {
                 }
             }
         };
-        let (source, generation) = {
+        let (source, capture, generation) = {
             let mut r = self.runtime.lock().map_err(|e| e.to_string())?;
             let Some(source) = r.source.clone() else {
                 return if manual {
@@ -255,14 +282,25 @@ impl Engine {
                 )?;
                 return Ok(());
             }
-            (source, r.generation)
+            let capture = r.capture.clone().ok_or("Capture connection was lost")?;
+            (source, capture, r.generation)
         };
         let device = device::state();
         if device == "locked" {
             self.pause("Device locked. Tracking paused.")?;
             return Ok(());
         }
-        let image = capture::frame(&source)?;
+        let image = match capture.frame() {
+            Ok(image) => image,
+            Err(error) => {
+                if capture.portal().is_some() {
+                    if let Ok(mut r) = self.runtime.lock() {
+                        r.portal_cache = None;
+                    }
+                }
+                return Err(error);
+            }
+        };
         let pixels = capture::pixels(&image);
         let mut r = self.runtime.lock().map_err(|e| e.to_string())?;
         if r.generation != generation || r.source.is_none() {
@@ -379,10 +417,7 @@ impl Engine {
                 .current
                 .as_ref()
                 .map_or(now_ms(), |s| s.last_seen);
-            let _ = r.pause(
-                "Tracking paused after a capture or storage error",
-                last_seen,
-            );
+            let _ = r.pause("Tracking paused after an error", last_seen);
             r.error = error;
             r.revision += 1;
         }

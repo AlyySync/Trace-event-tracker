@@ -34,7 +34,7 @@ jobs:
           sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev \
             libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev \
             libclang-dev libxcb1-dev libxrandr-dev libdbus-1-dev \
-            libpipewire-0.3-dev libwayland-dev libegl-dev libgbm-dev libxss-dev patchelf xdg-utils
+            libpipewire-0.3-dev libwayland-dev libegl-dev libgbm-dev libxss-dev patchelf xdg-utils xvfb xauth
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -44,6 +44,9 @@ jobs:
             src-tauri -> target
             src-tauri/core -> target
       - run: npm ci
+      - name: Check release tag version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: test "v$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
       - run: npm run typecheck
       - run: npm run test:tracking
       - run: npm run test:rust -- --locked
@@ -69,6 +72,11 @@ jobs:
           print(libraries)
           assert 'not found' not in libraries, 'Missing runtime library'
           PY
+          set +e
+          dbus-run-session -- xvfb-run -a timeout 10s /usr/bin/trace-desktop
+          result=$?
+          set -e
+          test "$result" -eq 124
       - name: Verify Windows installer
         if: runner.os == 'Windows' && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v'))
         shell: pwsh
@@ -84,3 +92,28 @@ jobs:
           name: Trace-${{ matrix.target }}
           if-no-files-found: error
           path: release/installers/*
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: desktop
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Trace-*
+          path: installers
+          merge-multiple: true
+      - name: Publish installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -f installers/INSTALL.md
+          test -n "$(find installers -maxdepth 1 -name '*.deb' -print -quit)"
+          test -n "$(find installers -maxdepth 1 -name '*-setup.exe' -print -quit)"
+          (cd installers && sha256sum -c SHA256SUMS-linux.txt && sha256sum -c SHA256SUMS-windows.txt)
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" installers/* --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" installers/* --repo "$GITHUB_REPOSITORY" --title "Trace $GITHUB_REF_NAME" --generate-notes
+          fi

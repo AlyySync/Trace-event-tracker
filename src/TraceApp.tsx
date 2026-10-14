@@ -290,7 +290,7 @@ export default function TraceApp() {
       void desktop.storageInfo().then(setStorageInfo).catch(failure => setStorageError(String(failure)));
     }
   };
-  const startTracking = async () => {
+  const startTracking = async (chooseSource = false) => {
     if (native) {
       if (running) await tracker.pause("Changing screen source");
       setSourceLoading(true);
@@ -298,6 +298,12 @@ export default function TraceApp() {
       try {
         const available = await desktop.listSources();
         if (!available.length) throw new Error("No sources");
+        const automatic = available.find((source) => source.id === 'portal:all')
+          ?? available.find((source) => source.id === 'portal:select');
+        if (!chooseSource && automatic) {
+          await tracker.start(label, automatic);
+          return;
+        }
         setSources(available);
       } catch (failure) {
         tracker.setError(`Could not list screens: ${String(failure)}. Check screen-recording permission and try again.`);
@@ -825,7 +831,7 @@ export default function TraceApp() {
                   </div>
                   <button
                     className="subtle-button"
-                    onClick={() => void startTracking()}
+                    onClick={() => void startTracking(true)}
                     disabled={
                       !tracker.ready ||
                       tracker.readOnly ||
@@ -1532,8 +1538,9 @@ export default function TraceApp() {
         wide
       >
         <p className="source-picker-note">
-          Only the screen or window you select is tracked. Avoid selecting Trace
-          itself for a cleaner activity signal.
+          {sources?.some((source) => source.id === 'portal:select')
+            ? 'For both screens, select both displays in Ubuntu’s sharing dialog. Trace combines them into one preview and screenshot. Keep sharing enabled while tracking.'
+            : 'Only the screen or window you select is tracked. Avoid selecting Trace itself for a cleaner activity signal.'}
         </p>
         <div className="source-grid">
           {sources?.map((source) => (
